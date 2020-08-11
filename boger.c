@@ -3,6 +3,7 @@
 #include <string.h>
 #include "fortune-mod-common.h"
 #include "computersfuckingsuck.h"
+
 char * funny[] = {
     "bougère\0",
     "青虫\0",

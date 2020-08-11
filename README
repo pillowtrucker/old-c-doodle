@@ -1,5 +1,7 @@
-- you probably need fortune-mod but maybe note
+* prep:
+- you need fortune-mod for strfile
 - definitely need rinutils
-- maybe some other libraries that I already had
-- make
-- ./iHATEcomputers
+- if you want to update the fortunes then curl ( preferable 7.68+, but should work with some older)
+* run:
+- run make
+- run ./iHATEcomputers
