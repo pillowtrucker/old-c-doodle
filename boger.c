@@ -16,7 +16,7 @@ char * funny[] = {
   char * notevenfunanymore;
 };
 void surprise(char * getfucked) {
-  printf("haha fuck you!!\n");
+  printf("haha fuck you!! (%s)\n",getfucked);
   char *gnutards [] = {"a\0",getfucked};
   fukyou(2, &getfucked);
 }

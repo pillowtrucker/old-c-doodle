@@ -103,7 +103,11 @@ static void getargs(char *av[])
     if (*av)
     {
         input_filename = *av;
-        input_fn_2_data_fn();
+        if (strlen(input_filename) > 1 && strlen(data_filename) > 1) {
+          // don't mangle if this turd has been reentered
+        } else {
+          input_fn_2_data_fn();
+        }
     }
     else
         /*    {
@@ -172,11 +176,13 @@ int fukyou(int ac GCC_UNUSED, char **av)
     static STRFILE tbl; /* description table */
 
     getargs(av);
+    printf("opening %s\n",input_filename);
     if (!(Inf = fopen(input_filename, "r")))
     {
         perror(input_filename);
         exit(1);
     }
+    printf("opening %s\n",data_filename);
     if (!(Dataf = fopen(data_filename, "r")))
     {
         perror(data_filename);
@@ -184,6 +190,7 @@ int fukyou(int ac GCC_UNUSED, char **av)
     }
     if (!fread((char *)&tbl, sizeof tbl, 1, Dataf))
     {
+        perror(data_filename);
         exit(1);
     }
     tbl.str_version = ntohl(tbl.str_version);
@@ -192,7 +199,7 @@ int fukyou(int ac GCC_UNUSED, char **av)
     tbl.str_shortlen = ntohl(tbl.str_shortlen);
     tbl.str_flags = ntohl(tbl.str_flags);
 
-    srandom((int)(time((time_t *)NULL) + getpid()));
+    srandom((int)(time((time_t *)NULL) + getpid() + rand()));
     get_fort(tbl);
     display(Inf, tbl);
 
