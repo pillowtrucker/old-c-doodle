@@ -5,6 +5,7 @@ static void input_fn_2_data_fn(void)
     if (strlen(input_filename) > COUNT(data_filename) - 10)
     {
         fprintf(stderr, "%s\n", "input filname is too long");
+        printf("what a POS\n");
         exit(1);
     }
     /* Hmm.  Don't output anything if we can help it.

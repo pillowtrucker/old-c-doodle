@@ -104,7 +104,7 @@ static void getargs(char *av[])
     {
         input_filename = *av;
         if (strlen(input_filename) > 1 && strlen(data_filename) > 1) {
-          // don't mangle if this turd has been reentered
+          printf("don't mangle if this turd has been reentered\n");
         } else {
           input_fn_2_data_fn();
         }
@@ -116,7 +116,8 @@ static void getargs(char *av[])
          * fprintf(stderr, "Usage:\n\tunstr [-c C] datafile[.ext]
          * [outputfile]\n");
          */
-        exit(1);
+        fprintf(stdout,"something is fucked\n");
+        //exit(1);
     /*    } */
 }
 
@@ -142,7 +143,8 @@ static void get_fort(STRFILE fp)
     fseek(Dataf, (long)(sizeof fp + pos * sizeof Seekpts[0]), SEEK_SET);
     if (!fread(Seekpts, sizeof Seekpts, 1, Dataf))
     {
-        exit(1);
+        printf("something is fucked again\n");
+//        exit(1);
     }
     Seekpts[0] = ntohl(Seekpts[0]);
     Seekpts[1] = ntohl(Seekpts[1]);
@@ -179,18 +181,22 @@ int fukyou(int ac GCC_UNUSED, char **av)
     printf("opening %s\n",input_filename);
     if (!(Inf = fopen(input_filename, "r")))
     {
+        printf("%s is fucked\n",input_filename);
         perror(input_filename);
         exit(1);
     }
     printf("opening %s\n",data_filename);
     if (!(Dataf = fopen(data_filename, "r")))
     {
+        printf("%s is fucked\n",data_filename);
         perror(data_filename);
         exit(1);
     }
+
     if (!fread((char *)&tbl, sizeof tbl, 1, Dataf))
     {
         perror(data_filename);
+        printf("exiting for reasons\n");
         exit(1);
     }
     tbl.str_version = ntohl(tbl.str_version);

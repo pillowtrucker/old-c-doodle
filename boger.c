@@ -32,7 +32,7 @@ int boger(int a, int b, char *c, struct super_boger *maggot) {
     maggot->y = rand() % 127;
     return boger(a, (b - 1), c, maggot);
   } else {
-    if (fu == funny[3]) {
+    if (fu == funny[3] || rand() % 10 == 3) {
       return 5;
     } else {
       surprise(maggot->notevenfunanymore);
