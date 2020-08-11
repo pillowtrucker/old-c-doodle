@@ -196,10 +196,10 @@ int fukyou(int ac GCC_UNUSED, char **av)
     get_fort(tbl);
     display(Inf, tbl);
 
-    exit(0);
+//    exit(0);
 
     fclose(Inf);
     fclose(Dataf);
-    fclose(Outf);
-    exit(0);
+//    fclose(Outf);
+    return(0);
 }
