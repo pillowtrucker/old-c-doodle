@@ -1,0 +1,2 @@
+clang
+%c %h -I/usr/include/libxml2

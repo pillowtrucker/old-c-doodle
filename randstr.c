@@ -87,7 +87,7 @@
  */
 
 #include "fortune-mod-common.h"
-
+#include <ncurses.h>
 static char *input_filename, data_filename[MAXPATHLEN];
 
 static FILE *Inf, *Dataf, *Outf;
@@ -96,27 +96,36 @@ static off_t pos, Seekpts[2]; /* seek pointers to fortunes */
 
 #include "fortune-util.h"
 
-static void getargs(char *av[])
+static void getargs(char *av[],WINDOW * win)
 {
+  
+    if (strlen(data_filename) > 1) {
+      return;
+    }
+     else {
     av += optind + 1;
-
+        }
     if (*av)
     {
         input_filename = *av;
+            mvwprintw(win,0,0,"input filename is %s\n",input_filename);
+              wrefresh(win);
+              usleep(5);
         if (strlen(input_filename) > 1 && strlen(data_filename) > 1) {
-          printf("don't mangle if this turd has been reentered\n");
+//          printf("don't mangle if this turd has been reentered\n");
         } else {
           input_fn_2_data_fn();
         }
+    } else {
     }
-    else
         /*    {
          * Don't write out errors here, either; trust in exit codes and sh
          * fprintf(stderr, "No input file name\n");
          * fprintf(stderr, "Usage:\n\tunstr [-c C] datafile[.ext]
          * [outputfile]\n");
-         */
+         
         fprintf(stdout,"something is fucked\n");
+        */
         //exit(1);
     /*    } */
 }
@@ -143,20 +152,22 @@ static void get_fort(STRFILE fp)
     fseek(Dataf, (long)(sizeof fp + pos * sizeof Seekpts[0]), SEEK_SET);
     if (!fread(Seekpts, sizeof Seekpts, 1, Dataf))
     {
-        printf("something is fucked again\n");
+//        printf("something is fucked again");
 //        exit(1);
     }
     Seekpts[0] = ntohl(Seekpts[0]);
     Seekpts[1] = ntohl(Seekpts[1]);
 }
 
-static void display(FILE *fp, STRFILE table)
+static void display(FILE *fp, STRFILE table, WINDOW * win)
 {
     char *p, ch;
     char line[BUFSIZ];
+    wchar_t wline[BUFSIZ];
     int i;
 
     fseek(fp, (long)Seekpts[0], SEEK_SET);
+    wclear(win);
     for (i = 0; fgets(line, sizeof line, fp) && !STR_ENDSTRING(line, table);
          i++)
     {
@@ -168,36 +179,48 @@ static void display(FILE *fp, STRFILE table)
                 else if (islower(ch))
                     *p = 'a' + (ch - 'a' + 13) % 26;
             }
-        fputs(line, stdout);
+        mbstowcs(wline, line, strlen(line));
+        wprintw(win,"%ls",wline);
+        wrefresh(win);
     }
-    fflush(stdout);
+//    fflush(stdout);
 }
 
-int fukyou(int ac GCC_UNUSED, char **av)
+int fukyou(int ac GCC_UNUSED, char **av, WINDOW * win)
 {
     static STRFILE tbl; /* description table */
 
-    getargs(av);
-    printf("opening %s\n",input_filename);
+    getargs(av,win);
+//            mvwprintw(win,0,0,"opening %s\n",input_filename);
+//              wrefresh(win);
     if (!(Inf = fopen(input_filename, "r")))
     {
-        printf("%s is fucked\n",input_filename);
+//        printf("%s is fucked\n",input_filename);
+//            mvwprintw(win,0,0,"input filename is fucked %s\n",input_filename);
+//              wrefresh(win);
         perror(input_filename);
-        exit(1);
+        return 1;
+//        exit(1);
     }
     printf("opening %s\n",data_filename);
+//            mvwprintw(win,0,0,"opening %s\n",data_filename);
+//              wrefresh(win);
     if (!(Dataf = fopen(data_filename, "r")))
     {
-        printf("%s is fucked\n",data_filename);
+//        printf("%s is fucked\n",data_filename);
+//            mvwprintw(win,0,0,"data filename is fucked %s\n",data_filename);
+              wrefresh(win);
         perror(data_filename);
-        exit(1);
+        return 1;
+//        exit(1);
     }
 
     if (!fread((char *)&tbl, sizeof tbl, 1, Dataf))
     {
         perror(data_filename);
-        printf("exiting for reasons\n");
-        exit(1);
+        return 1;
+//        printf("exiting for reasons\n");
+//        exit(1);
     }
     tbl.str_version = ntohl(tbl.str_version);
     tbl.str_numstr = ntohl(tbl.str_numstr);
@@ -207,7 +230,7 @@ int fukyou(int ac GCC_UNUSED, char **av)
 
     srandom((int)(time((time_t *)NULL) + getpid() + rand()));
     get_fort(tbl);
-    display(Inf, tbl);
+    display(Inf, tbl, win);
 
 //    exit(0);
 

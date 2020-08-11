@@ -3,7 +3,7 @@
 #include <string.h>
 #include "fortune-mod-common.h"
 #include "computersfuckingsuck.h"
-
+#include <ncurses.h>
 char * funny[] = {
     "bougère\0",
     "青虫\0",
@@ -17,9 +17,9 @@ char * funny[] = {
   char * notevenfunanymore;
 };
 void surprise(char * getfucked) {
-  printf("haha fuck you!! (%s)\n",getfucked);
   char *gnutards [] = {"a\0",getfucked};
-  fukyou(2, &getfucked);
+  WINDOW * win;
+  fukyou(2,getfucked,win);
 }
 
 int boger(int a, int b, char *c, struct super_boger *maggot) {
