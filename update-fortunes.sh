@@ -5,7 +5,7 @@ curlver=${curlver#curl }
 curlver=${curlver%% (*}
 if [ $curlver = "`echo -e "7.68.0\n$curlver" | sort -V | tail -n1`" ]
    then
-     curl -v -o testfile.txt --etag-compare lastfart --etag-save lastfart http://www.asciiartfarts.com/fortune.txt
+     curl -v -o fart --etag-compare lastfart --etag-save lastfart http://www.asciiartfarts.com/fortune.txt
 else
-    while read lastfart;do curl -v -o test.txt --header "If-None-Match: \"$lastfart\"" http://www.asciiartfarts.com/fortune.txt;done<lastfart
+    while read lastfart;do curl -v -o fart --header "If-None-Match: \"$lastfart\"" http://www.asciiartfarts.com/fortune.txt;done<lastfart
 fi
