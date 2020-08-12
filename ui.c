@@ -5,6 +5,7 @@
 wchar_t greet[36];
 wchar_t prompt[3];
 void blink(WINDOW * win) {
+  wclear(win);
   mvwprintw(win,0,0,"%ls",weye);
   wrefresh(win);
   usleep(200000);
@@ -44,8 +45,9 @@ thread_fn milton_ui(__attribute__((unused)) void * arg) {
   initscr();
   cbreak();
   noecho();
-  wl2 = wl1 = LINES/2;
-  wc2 = wc1 = COLS/2;
+  wl1 = LINES * 3 / 4;
+  wl2 = LINES/4;
+  wc2 = wc1 = COLS;
   refresh();
   top = newwin(wl1,wc1,0,0);
   wrefresh(top);
@@ -84,13 +86,13 @@ thread_fn milton_ui(__attribute__((unused)) void * arg) {
     }
     pthread_mutex_lock(chunk.chunk_mutex);
     if(chunk.memory != NULL) {
-      wclear(bottom);
-      wrefresh(bottom);
+      wclear(top);
+      wrefresh(top);
       wchar_t * expanded_extracted_result = malloc(sizeof(wchar_t) * chunk.size);
       mbstowcs(expanded_extracted_result, chunk.memory, chunk.size);
       
-      wprintw(bottom,"%ls",expanded_extracted_result);
-      wrefresh(bottom);
+      wprintw(top,"%ls",expanded_extracted_result);
+      wrefresh(top);
       getch();
       // finally clean up the xmlString
 //      xmlFree((xmlChar *) chunk.memory);
