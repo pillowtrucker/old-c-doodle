@@ -1,10 +1,10 @@
-* purpose
+# purpose
 - this is a bbs I guess
 - for me it also doubles as a complicated test case for fucking around with ida pro
 - you type a thing and it's looked up on wikipedia and then the summary dumped
 - fancy blink animation
 - after each wikipedia article summary prints a random ascii art fart ( https://www.asciiartfarts.com )
-* prep:
+# prep:
 - you need fortune-mod for strfile
 - definitely need rinutils
 - need pthread
@@ -17,10 +17,10 @@
 - if you want - run make test (or make iHATEcomputers && ./iHATEcomputers )
 - run make
 - ./mla
-* other notes
+# other notes
 - if you have an old version of curl you will have to update the `lastfart` ETag manually after an update
 - regardless of this, you will have to commit any changes to the source `fart` fortune file and the updated timestamp file `lastfart`, unless you decide to gitignore that part
-TODO/BUGS:
+# TODO/BUGS:
 - barely anything works
 - the wikimarkup is raw
 - test has mangled strings in it because they're not converted to wchar arrays
@@ -29,7 +29,7 @@ TODO/BUGS:
 - look up fart fortune asynchronously
 - comms with tcl/haskell over some socket
 
-old TODO:
+# old TODO:
 ```
    verbs ('commands')
    follow redirects,
@@ -42,4 +42,4 @@ old TODO:
    create 'links' (suggestions) for lookups based on prefious queries
    BUG (maybe): ncurses seems to truncate long results, could be wide chars
    Parsing wikipedia response
-*/
+```
