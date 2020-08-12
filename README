@@ -29,6 +29,8 @@
 - look up fart fortune asynchronously
 - comms with tcl/haskell over some socket
 - you can tell that i mangled a main() function from a binary to make the librandstr library and couldn't be arsed to do it properly
+- remove the stuff for readline that I don't actually need
+- fix the prompt
 # old TODO:
 ```
    verbs ('commands')
