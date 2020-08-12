@@ -2,7 +2,7 @@
 - this is a bbs I guess
 - for me it also doubles as a complicated test case for fucking around with ida pro
 - you type a thing and it's looked up on wikipedia and then the summary dumped
-- fancy blink animation
+- ***fancy blink animation***
 - after each wikipedia article summary prints a random ascii art fart ( https://www.asciiartfarts.com )
 # prep:
 - you need fortune-mod for strfile
@@ -12,11 +12,11 @@
 - need pcre (version 2.8 was what this was originally built with) (I will probably only keep one of pcre and xml2 at some point)
 - there is a linux-specific time function used so this may not run on any other system but you're welcome to try
 - need ncurses 6+ (or ncursesw 5.x, but you'd have to adjust the headers back to the terrible mess with `ncursesw/curses.h` )
-- if you want to update the fortunes then curl ( preferable 7.68+, but should work with some older)
-* run:
-- if you want - run make test (or make iHATEcomputers && ./iHATEcomputers )
-- run make
-- ./mla
+- if you want to update the fortunes then `curl` ( preferable 7.68+, but should work with some older)
+# run:
+- if you want - run `make test` (or `make iHATEcomputers && ./iHATEcomputers` )
+- run `make`
+- `./mla`
 # other notes
 - if you have an old version of curl you will have to update the `lastfart` ETag manually after an update
 - regardless of this, you will have to commit any changes to the source `fart` fortune file and the updated timestamp file `lastfart`, unless you decide to gitignore that part
@@ -28,7 +28,7 @@
 - sometimes no fortune is displayed - not sure why
 - look up fart fortune asynchronously
 - comms with tcl/haskell over some socket
-
+- you can tell that i mangled a main() function from a binary to make the librandstr library and couldn't be arsed to do it properly
 # old TODO:
 ```
    verbs ('commands')
