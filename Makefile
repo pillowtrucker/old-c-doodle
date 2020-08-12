@@ -1,5 +1,5 @@
-MYFLAGS = -lxml2 -lpthread -lcurl -lncurses -lxml2 -lpcre2-8 -L. -lrandstr -I/usr/include/libxml2
-HARD_MODE = -lxml2 -lpthread -lcurl -lncurses -lxml2 -lpcre2-8 -L. -lrandstr_hard -I/usr/include/libxml2 -O2 -march=native -s
+MYFLAGS = -lxml2 -lpthread -lcurl -lncurses -lxml2 -lpcre2-8 -lreadline -L. -lrandstr -I/usr/include/libxml2
+HARD_MODE = -lxml2 -lpthread -lcurl -lncurses -lxml2 -lpcre2-8 -lreadline -L. -lrandstr_hard -I/usr/include/libxml2 -O2 -march=native -s
 all: iHATEcomputers update-fortunes fart.dat mla
 
 iHATEcomputers: boger.o librandstr.so fart.dat

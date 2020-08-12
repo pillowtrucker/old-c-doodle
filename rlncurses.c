@@ -1,50 +1,13 @@
-
-#include "ui.h"
-#include "computersfuckingsuck.h"
-#include "fortune-mod-common.h"
-#include <readline/readline.h>
-#include <readline/history.h>
-wchar_t greet[36];
-wchar_t prompt[3];
-static bool line_full;
-static char * buffer;
-void blink(WINDOW * win) {
-  wclear(win);
-  mvwprintw(win,0,0,"%ls",weye);
-  wrefresh(win);
-  usleep(200000);
-  mvwprintw(win,0,0,"%ls",weye2);
-  wrefresh(win);
-  usleep(200000);
-  mvwprintw(win,0,0,"%ls",weye3);
-  wrefresh(win);
-  usleep(200000);
-  mvwprintw(win,0,0,"%ls",weye2);
-  wrefresh(win);
-  usleep(200000);
-  mvwprintw(win,0,0,"%ls",weye);
-  wrefresh(win);
-}
-void greet_and_prompt(WINDOW * win) {
-  wclear(win);
-  wrefresh(win);
-  mvwprintw(win,0,0,"%ls",greet);
-  wrefresh(win);
-  usleep(200000);
-  mvwprintw(win,2,0,"%ls",prompt);
-  wrefresh(win);
-  wmove(win, 2, 3);
-  wrefresh(win);
-}
-
-// readline shit stolen from:
 // Copyright (c) 2015-2019, Ulf Magnusson
 // SPDX-License-Identifier: ISC
 
 // For strnlen() and wcwidth()
+#define _XOPEN_SOURCE 700
 
+#include <curses.h>
 #include <locale.h>
-
+#include <readline/history.h>
+#include <readline/readline.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -191,27 +154,15 @@ static void msg_win_redisplay(bool for_resize)
 
 static void got_command(char *line)
 {
-        line_full = FALSE;
-//        wclear(cmd_win);
-//        wprintw(cmd_win,"line was %s",line);
-//        wrefresh(cmd_win);
-//        usleep(1000000);
     if (!line)
         // Ctrl-D pressed on empty line
         should_exit = true;
     else {
-      if (*line) {
-        add_history(line);
-//        wclear(cmd_win);
-//        wprintw(cmd_win,"line was %s",line);
-//        wrefresh(cmd_win);
-//        usleep(1000000);
-        strcpy(buffer, line);
-        line_full = TRUE;
-      }
+        if (*line)
+            add_history(line);
+
         free(msg_win_str);
         msg_win_str = line;
-//        strcpy(buffer,line);
         msg_win_redisplay(false);
     }
 }
@@ -360,118 +311,6 @@ static void deinit_readline(void)
     rl_callback_handler_remove();
 }
 
-// back to our shit
-thread_fn milton_ui(__attribute__((unused)) void *arg) {
-
-
-  // char *buffer;
-  pthread_t worker_thread;
-  WINDOW *top, *bottom, *cmdwin;
-  int wl1, wl2, wc1, wc2, wl3, wc3;
-
-  mbstowcs(weye, (string)eye, eye_len);
-  mbstowcs(weye2, (string)eye2, eye2_len);
-  mbstowcs(weye3, (string)eye3, eye3_len);
-  mbstowcs(greet, "Milton Library Assistant Version 2.", sizeof(greet));
-  mbstowcs(prompt, "$ ", sizeof(prompt));
-  initscr();
-  cbreak();
-  noecho();
-  wl1 = LINES * 3 / 4;
-  wl2 = LINES / 8;
-  wl3 = LINES / 8;
-  wc3 = wc2 = wc1 = COLS;
-  refresh();
-  top = newwin(wl1, wc1, 0, 0);
-  wrefresh(top);
-  bottom = newwin(wl2, wc2, wl1, 0);
-  cmdwin = newwin(wl3, wc3, wl2, 0);
-  scrollok(bottom, TRUE);
-  idlok(bottom, TRUE);
-  msg_win = bottom;
-  sep_win = bottom;
-  cmd_win = bottom;
-  init_readline();
-  wrefresh(bottom);
-  blink(top);
-  greet_and_prompt(bottom);
-  int ch;
-  for (;;) {
-    line_full = FALSE;
-    buffer = malloc(sizeof(char) * MAX_BUFFER);
-    int i;
-    //        buffer[0] = 0;
-    //     read chars until you find a newline, print them back to the user as
-    //     they come to emulate echo, don't go over maximum buffer size
-    for (i = 0;
-         ((ch = getch())) && ((unsigned long)i <= MAX_BUFFER - 1) && !line_full;
-         i++) {
-//      buffer[i] = ch;
-      forward_to_readline(ch);
-      if(ch == '\n')
-        break;
-      //    waddch(bottom,ch);
-      //    wrefresh(bottom);
-    }
-    //   while ((buffer = readline("❯")) != NULL) {
-    //     if (strlen(buffer) > 0) {
-    //       add_history(buffer);
-    //     }
-
-//      buffer[i] = 0;
-//    buffer = msg_win_str;
-    blink(top);
-//    wclear(top);
-//    wprintw(top, "trying to look up %s",buffer);
-//    wrefresh(top);
-//    usleep(1000000);
-    struct MemoryStruct chunk;
-    chunk.size = 0;
-    chunk.memory = malloc(1);
-    chunk.chunk_mutex = malloc(sizeof(pthread_mutex_t));
-    pthread_mutex_init(chunk.chunk_mutex, NULL);
-    WikiQuery wquery = {.chunk = &chunk, .arg = buffer};
-    pthread_create(&worker_thread, NULL, &knowledge_query, &wquery);
-    struct timespec now;
-    struct timespec wikiquery_timeout;
-    for (;;) {
-      clock_gettime(CLOCK_REALTIME, &now);
-      wikiquery_timeout =
-          (struct timespec){.tv_sec = now.tv_sec + 2, .tv_nsec = now.tv_nsec};
-      blink(top);
-      if (pthread_timedjoin_np(worker_thread, NULL, &wikiquery_timeout) == 0)
-        break;
-    }
-    pthread_mutex_lock(chunk.chunk_mutex);
-    if (chunk.memory != NULL) {
-      wclear(top);
-      wrefresh(top);
-      wchar_t *expanded_extracted_result = malloc(sizeof(wchar_t) * chunk.size);
-      mbstowcs(expanded_extracted_result, chunk.memory, chunk.size);
-
-      wprintw(top, "%ls", expanded_extracted_result);
-      wrefresh(top);
-      getch();
-      // finally clean up the xmlString
-      //      xmlFree((xmlChar *) chunk.memory);
-      free(chunk.memory);
-      free(expanded_extracted_result);
-    }
-    pthread_mutex_unlock(chunk.chunk_mutex);
-    pthread_mutex_destroy(chunk.chunk_mutex);
-    free(chunk.chunk_mutex);
-//    buffer[0]=0;
-    free(buffer);
-    char *getfucked = malloc(sizeof(char) * MAXPATHLEN);
-    strcpy(getfucked, "./fart.dat\0");
-    char *hng[] = {"boger\0", "poger\0", getfucked};
-    fukyou(2, hng, top);
-    greet_and_prompt(bottom);
-  }
-
-  pthread_exit(NULL);
-}
-/*
 int main(void)
 {
     // Set locale attributes (including encoding) from the environment
@@ -509,4 +348,3 @@ int main(void)
 
     puts("Shut down cleanly");
 }
-*/
