@@ -108,8 +108,8 @@ static void getargs(char *av[],WINDOW * win)
     if (*av)
     {
         input_filename = *av;
-            mvwprintw(win,0,0,"input filename is %s\n",input_filename);
-              wrefresh(win);
+//            mvwprintw(win,0,0,"input filename is %s\n",input_filename);
+//              wrefresh(win);
               usleep(5);
         if (strlen(input_filename) > 1 && strlen(data_filename) > 1) {
 //          printf("don't mangle if this turd has been reentered\n");
@@ -168,6 +168,7 @@ static void display(FILE *fp, STRFILE table, WINDOW * win)
 
     fseek(fp, (long)Seekpts[0], SEEK_SET);
     wclear(win);
+    wmove(win,0,0);
     for (i = 0; fgets(line, sizeof line, fp) && !STR_ENDSTRING(line, table);
          i++)
     {
@@ -179,8 +180,8 @@ static void display(FILE *fp, STRFILE table, WINDOW * win)
                 else if (islower(ch))
                     *p = 'a' + (ch - 'a' + 13) % 26;
             }
-        mbstowcs(wline, line, strlen(line));
-        wprintw(win,"%ls",wline);
+        //mbstowcs(wline, line, strlen(line));
+        wprintw(win,"%s",line);
         wrefresh(win);
     }
 //    fflush(stdout);

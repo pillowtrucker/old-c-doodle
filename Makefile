@@ -1,12 +1,12 @@
 MYFLAGS = -lxml2 -lpthread -lcurl -lncurses -lxml2 -lpcre2-8 -I/usr/include/libxml2
-all: iHATEcomputers update-fortunes fart.dat
+all: iHATEcomputers update-fortunes fart.dat mla
 
-iHATEcomputers: boger.o randstr.o
-	gcc -o iHATEcomputers boger.o randstr.o
+iHATEcomputers: boger.o randstr.o fart.dat
+	gcc $(MYFLAGS) -o iHATEcomputers boger.o randstr.o
 boger.o: boger.c
-	gcc -c -g boger.c
+	gcc $(MYFLAGS) -c -g boger.c
 randstr.o: randstr.c
-	gcc -c -g randstr.c
+	gcc $(MYFLAGS) -c -g randstr.c
 fart.dat: fart
 	strfile fart
 clean:
@@ -20,7 +20,7 @@ total-wanking: total-wanking.c
 	gcc total-wanking.c -ototal-wanking -march=broadwell
 update-fortunes:
 	./update-fortunes.sh
-mla: mla.o wiki.o ui.o libstolen.o randstr.o
+mla: mla.o wiki.o ui.o libstolen.o randstr.o fart.dat
 	gcc $(MYFLAGS) -omla mla.o wiki.o ui.o libstolen.o randstr.o
 mla.o: mla.c
 	gcc $(MYFLAGS) -c -g mla.c
@@ -30,3 +30,5 @@ wiki.o: wiki.c
 	gcc $(MYFLAGS) -c -g wiki.c
 ui.o: ui.c
 	gcc $(MYFLAGS) -c -g ui.c
+test:	iHATEcomputers
+	./iHATEcomputers

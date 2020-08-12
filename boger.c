@@ -15,19 +15,24 @@ char * funny[] = {
   char y;
   char * hehe;
   char * notevenfunanymore;
-};
-void surprise(char * getfucked) {
-  char *gnutards [] = {"a\0",getfucked};
   WINDOW * win;
-  fukyou(2,getfucked,win);
+};
+void surprise(struct super_boger *maggot) {
+  char * getfucked = maggot->notevenfunanymore;
+  char *gnutards [] = {"a\0","b\0",getfucked};
+
+  fukyou(2,gnutards,maggot->win);
 }
 
 int boger(int a, int b, char *c, struct super_boger *maggot) {
   char * fu = funny[rand() %3];
   maggot->hehe = fu;
-  
-  printf("a == %d b == %d c == %s maggot.x == %d maggot.y == %c maggot.hehe == %s\n ", a, b, c,
+  WINDOW * win = maggot->win;
+  wprintw(win,"a == %d b == %d c == %s maggot.x == %d maggot.y == %c maggot.hehe == %s\n ", a, b, c,
            maggot->x, maggot->y, maggot->hehe);
+  wrefresh(win);
+  usleep(1000000);
+  wclear(win);
   if (b > 0 ) {
     maggot->x++;
     maggot->y = rand() % 127;
@@ -36,7 +41,7 @@ int boger(int a, int b, char *c, struct super_boger *maggot) {
     if (fu == funny[3] || rand() % 10 == 3) {
       return 5;
     } else {
-      surprise(maggot->notevenfunanymore);
+      surprise(maggot);
       return boger(a, b+1, c, maggot);
     }
   }
@@ -55,8 +60,20 @@ int main(int argc, char **argv) {
   maggot->notevenfunanymore = getfucked;
   maggot->x = 1;
   maggot->y = 'h';
+  WINDOW * win;
+  int wl1, wl2, wc1, wc2;
+  initscr();
+  cbreak();
+  noecho();
+  wl2 = wl1 = LINES;
+  wc2 = wc1 = COLS;
+  refresh();
+  win = newwin(wl1,wc1,0,0);
+  maggot->win = win;
+  wrefresh(win);
 
   int huh = boger(a, b, c, maggot);
-  printf("boger exited with %d\n", huh);
+  wprintw(win,"boger exited with %d",huh);
+  wrefresh(win);
   return 0;
 }
