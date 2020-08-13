@@ -364,7 +364,7 @@ static void init_readline(void)
     rl_input_available_hook = readline_input_avail;
     rl_redisplay_function = readline_redisplay;
 
-    rl_callback_handler_install("> ", got_command);
+    rl_callback_handler_install("$ ", got_command);
 }
 
 static void deinit_readline(void)
