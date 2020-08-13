@@ -7,3 +7,5 @@ mla
 *.so
 iHATEcomputers_hard
 mla_hard
+*core*
+*.log

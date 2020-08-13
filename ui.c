@@ -6,6 +6,17 @@
 #include "mla.h"
 #include <readline/readline.h>
 #include <readline/history.h>
+#define DEFECATE(w, ...)\
+  wclear(w);\
+  mvwprintw(w,0,0, __VA_ARGS__);\
+  wrefresh(w)
+#define DEFECATE_NORMAL(w,m)\
+  DEFECATE(w,"%s",m)
+
+#define DEFECATE_BIG(w,m)\
+  DEFECATE(w,"%ls",m)
+#define DEFECATE_VERBATIM(w,m)\
+  DEFECATE(w,m)
 
 some_result * init_result() {
   some_result * myresult = malloc(sizeof(some_result));
@@ -406,11 +417,33 @@ void print_result(some_result * myresult, WINDOW *win) {
   }
 }
 
+typedef struct inblog {
+  char * buffer;
+  char * command;
+  char * tail;
+  WINDOW * returnwindow;
+  pthread_mutex_t * r_window_mutex;
+} inblog;
+
+thread_fn
+defecate_command(void *arg) {
+  inblog * myinblog = (inblog *) arg;
+  char * first_word = strtok(myinblog->buffer," ");
+  unsigned int clen = strlen(first_word);
+//  char * fuku = malloc(sizeof(char) * (clen + 1));
+  myinblog->tail = myinblog->buffer + clen;
+  myinblog->command = first_word;
+  pthread_mutex_lock(myinblog->r_window_mutex);
+  DEFECATE(myinblog->returnwindow,"Found command %s\n",first_word);
+  pthread_mutex_unlock(myinblog->r_window_mutex);
+  pthread_exit(NULL);
+}
+
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
 
 
   // char *buffer;
-  pthread_t worker_thread;
+  pthread_t * worker_thread = malloc(sizeof(worker_thread));
   WINDOW *top, *bottom, *cmdwin;
   int wl1, wl2, wc1, wc2, wl3, wc3;
 
@@ -451,8 +484,11 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
          ((ch = getch())) && ((unsigned long)i <= MAX_BUFFER - 1) && !line_full;
          i++) {
       forward_to_readline(ch);
-      if(ch == '\n')
+      if (ch == '\n') {
+        buffer[i+1]=0;
         break;
+      }
+
     }
     blink(top);
     some_result * myresult = init_result();
@@ -462,16 +498,35 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
     chunk.memory = malloc(1);
     chunk.chunk_mutex = malloc(sizeof(pthread_mutex_t));
     pthread_mutex_init(chunk.chunk_mutex, NULL);
+    pthread_mutex_t * r_window_mutex = malloc(sizeof(pthread_mutex_t));
+    pthread_mutex_init(r_window_mutex,NULL);
     WikiQuery wquery = {.chunk = &chunk, .arg = buffer, .query_result = myresult};
-    pthread_create(&worker_thread, NULL, &knowledge_query, &wquery);
+//    inblog * inblog = malloc(sizeof(inblog));
+    inblog inblog = {.buffer = buffer, .returnwindow=top, .r_window_mutex=r_window_mutex};
+//    inblog->buffer=buffer;
+//    inblog->returnwindow=top;
+    pthread_t parse_command_thread;
+    pthread_create(&parse_command_thread, NULL, &defecate_command, &inblog);
     struct timespec now;
-    struct timespec wikiquery_timeout;
+    struct timespec query_timeout;
     for (;;) {
       clock_gettime(CLOCK_REALTIME, &now);
-      wikiquery_timeout =
+      query_timeout =
+          (struct timespec){.tv_sec = now.tv_sec + 2, .tv_nsec = now.tv_nsec};
+      pthread_mutex_lock(r_window_mutex);
+      blink(top);
+      pthread_mutex_unlock(r_window_mutex);
+      if (pthread_timedjoin_np(parse_command_thread, NULL, &query_timeout) == 0)
+        break;
+    }
+    getch();
+    pthread_create(worker_thread, NULL, &knowledge_query, &wquery);
+    for (;;) {
+      clock_gettime(CLOCK_REALTIME, &now);
+      query_timeout =
           (struct timespec){.tv_sec = now.tv_sec + 2, .tv_nsec = now.tv_nsec};
       blink(top);
-      if (pthread_timedjoin_np(worker_thread, NULL, &wikiquery_timeout) == 0)
+      if (pthread_timedjoin_np(*worker_thread, NULL, &query_timeout) == 0)
         break;
     }
     pthread_mutex_lock(chunk.chunk_mutex);
