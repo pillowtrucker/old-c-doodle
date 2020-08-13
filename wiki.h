@@ -4,7 +4,7 @@
 #endif
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <ncurses.h>
-#include "mla.h"
+
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
@@ -18,6 +18,7 @@
 typedef struct WikiQuery {
   struct MemoryStruct * chunk;
   string arg;
+  some_result * query_result;
 } WikiQuery;
 // struct passed to libxml2 to demangle the wikimedia api response
 //into .extracted_text

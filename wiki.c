@@ -188,6 +188,14 @@ thread_fn knowledge_query(void * arg) {
       l_wquery->chunk->size = w_summary->parsed_size;
       free(w_summary->unparsed_text);
       free(w_summary);
+      l_wquery->query_result->status =1;
+      l_wquery->query_result->result_type=1;
+      l_wquery->chunk->memory[l_wquery->chunk->size  -1 ] = 0;
+      wchar_t *expanded_extracted_result = malloc(sizeof(wchar_t) * (l_wquery->chunk->size + 1));
+      mbstowcs(expanded_extracted_result, l_wquery->chunk->memory, l_wquery->chunk->size );
+      l_wquery->query_result->result_size = l_wquery->chunk->size;
+      l_wquery->query_result->the_result->wide_result = expanded_extracted_result;
+      
       pthread_mutex_unlock(l_wquery->chunk->chunk_mutex);
     }
     

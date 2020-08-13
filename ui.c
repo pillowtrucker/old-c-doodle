@@ -1,9 +1,21 @@
-
 #include "ui.h"
 #include "computersfuckingsuck.h"
 #include "fortune-mod-common.h"
+#include "wiki.h"
+#include "libstolen.h"
+#include "mla.h"
 #include <readline/readline.h>
 #include <readline/history.h>
+
+some_result * init_result() {
+  some_result * myresult = malloc(sizeof(some_result));
+  myresult->status = -1;
+  myresult->result_size = 0;
+  myresult->result_type = RESULT_UNKNOWN;
+  myresult->the_result = malloc(sizeof(the_result));
+  return myresult;
+}
+
 wchar_t greet[36];
 wchar_t prompt[3];
 static bool line_full;
@@ -360,7 +372,40 @@ static void deinit_readline(void)
     rl_callback_handler_remove();
 }
 
+
 // back to our shit
+
+void print_result_and_refresh(some_result * myresult,WINDOW *win) {
+  wclear(win);
+  if (myresult->result_type == 0) {
+    wprintw(win,"%s",myresult->the_result->normal_result);
+  } else if (myresult->result_type == 1) {
+    wprintw(win,"%ls",myresult->the_result->wide_result);
+  }
+  wrefresh(win);
+}
+
+void cleanup_result(some_result * myresult) {
+
+  if (myresult->result_type == 0) {
+    free(myresult->the_result->normal_result);
+  } else if (myresult->result_type == 1) {
+    free(myresult->the_result->wide_result);
+  }
+  free(myresult->the_result);
+}
+
+void print_result(some_result * myresult, WINDOW *win) {
+  if (myresult->status == FALSE) {
+    
+  }
+  if (myresult->result_type == 3) {
+
+  } else {
+    print_result_and_refresh(myresult,win);
+  }
+}
+
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
 
 
@@ -400,37 +445,24 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
     line_full = FALSE;
     buffer = malloc(sizeof(char) * MAX_BUFFER);
     int i;
-    //        buffer[0] = 0;
     //     read chars until you find a newline, print them back to the user as
     //     they come to emulate echo, don't go over maximum buffer size
     for (i = 0;
          ((ch = getch())) && ((unsigned long)i <= MAX_BUFFER - 1) && !line_full;
          i++) {
-//      buffer[i] = ch;
       forward_to_readline(ch);
       if(ch == '\n')
         break;
-      //    waddch(bottom,ch);
-      //    wrefresh(bottom);
     }
-    //   while ((buffer = readline("❯")) != NULL) {
-    //     if (strlen(buffer) > 0) {
-    //       add_history(buffer);
-    //     }
-
-//      buffer[i] = 0;
-//    buffer = msg_win_str;
     blink(top);
-//    wclear(top);
-//    wprintw(top, "trying to look up %s",buffer);
-//    wrefresh(top);
-//    usleep(1000000);
+    some_result * myresult = init_result();
+    
     struct MemoryStruct chunk;
     chunk.size = 0;
     chunk.memory = malloc(1);
     chunk.chunk_mutex = malloc(sizeof(pthread_mutex_t));
     pthread_mutex_init(chunk.chunk_mutex, NULL);
-    WikiQuery wquery = {.chunk = &chunk, .arg = buffer};
+    WikiQuery wquery = {.chunk = &chunk, .arg = buffer, .query_result = myresult};
     pthread_create(&worker_thread, NULL, &knowledge_query, &wquery);
     struct timespec now;
     struct timespec wikiquery_timeout;
@@ -444,24 +476,14 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
     }
     pthread_mutex_lock(chunk.chunk_mutex);
     if (chunk.memory != NULL) {
-      wclear(top);
-      wrefresh(top);
-      wchar_t *expanded_extracted_result = malloc(sizeof(wchar_t) * (chunk.size + 1));
-      chunk.memory[chunk.size  -1 ] = 0;
-      mbstowcs(expanded_extracted_result, chunk.memory, chunk.size );
-      
-      wprintw(top, "%ls", expanded_extracted_result);
-      wrefresh(top);
+      print_result(wquery.query_result,top);
       getch();
-      // finally clean up the xmlString
-      //      xmlFree((xmlChar *) chunk.memory);
       free(chunk.memory);
-      free(expanded_extracted_result);
+      cleanup_result(wquery.query_result);
     }
     pthread_mutex_unlock(chunk.chunk_mutex);
     pthread_mutex_destroy(chunk.chunk_mutex);
     free(chunk.chunk_mutex);
-//    buffer[0]=0;
     free(buffer);
     char *getfucked = malloc(sizeof(char) * MAXPATHLEN);
     strcpy(getfucked, "./fart.dat\0");
@@ -472,42 +494,4 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
 
   pthread_exit(NULL);
 }
-/*
-int main(void)
-{
-    // Set locale attributes (including encoding) from the environment
-    if (!setlocale(LC_ALL, ""))
-        fail_exit("Failed to set locale attributes from environment");
 
-    init_ncurses();
-    init_readline();
-
-    do {
-        // Using getch() here instead would refresh stdscr, overwriting the
-        // initial contents of the other windows on startup
-        int c = wgetch(cmd_win);
-
-        switch (c) {
-        case KEY_RESIZE:
-            resize();
-            break;
-
-        // Ctrl-L -- redraw screen
-        case '\f':
-            // Makes the next refresh repaint the screen from scratch
-            CHECK(clearok, curscr, TRUE);
-            // Resize and reposition windows in case that got messed up somehow
-            resize();
-            break;
-
-        default:
-            forward_to_readline(c);
-        }
-    } while (!should_exit);
-
-    deinit_ncurses();
-    deinit_readline();
-
-    puts("Shut down cleanly");
-}
-*/
