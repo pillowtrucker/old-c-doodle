@@ -446,9 +446,10 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
     if (chunk.memory != NULL) {
       wclear(top);
       wrefresh(top);
-      wchar_t *expanded_extracted_result = malloc(sizeof(wchar_t) * chunk.size);
-      mbstowcs(expanded_extracted_result, chunk.memory, chunk.size);
-
+      wchar_t *expanded_extracted_result = malloc(sizeof(wchar_t) * (chunk.size + 1));
+      chunk.memory[chunk.size  -1 ] = 0;
+      mbstowcs(expanded_extracted_result, chunk.memory, chunk.size );
+      
       wprintw(top, "%ls", expanded_extracted_result);
       wrefresh(top);
       getch();
