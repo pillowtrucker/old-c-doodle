@@ -434,18 +434,38 @@ defecate_command(void *arg) {
   inblog * myinblog = (inblog *) arg;
   char * first_word = strtok(myinblog->buffer," ");
   unsigned int clen = strlen(first_word);
-//  char * fuku = malloc(sizeof(char) * (clen + 1));
   myinblog->tail = myinblog->buffer + clen;
-  myinblog->command = first_word;
+  myinblog->command = malloc(sizeof(char) * (clen +1));
+  strcpy(myinblog->command,first_word);
   pthread_mutex_lock(myinblog->r_window_mutex);
   DEFECATE(myinblog->returnwindow,"Found command %s\n",first_word);
   pthread_mutex_unlock(myinblog->r_window_mutex);
   pthread_exit(NULL);
 }
+typedef thread_fn cmd_callback(void * arg);
+
+static cmd_callback * dispatch_table[UINT_MAX];
+unsigned long
+    hash(char *str)
+    {
+        unsigned long hash = 5381;
+        int c;
+        while ((c = *str++))
+            hash = ((hash << 5) + hash) + c;
+        return (hash % UINT_MAX);
+    }
+void register_callback(char *thecmd, cmd_callback *thecallback) {
+      dispatch_table[hash(thecmd)] = thecallback;
+}
+int dipshit_command(char *thecmd, void *arg) {
+  pthread_t worker_thread;
+  pthread_create(&worker_thread,NULL, dispatch_table[hash(thecmd)],arg);
+  
+}
 
 void unfuck_my_terminal() {
-  we_are_fucked = 1;
-  longjmp(fuck,1);
+      we_are_fucked = 1;
+      longjmp(fuck, 1);
 }
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
 
@@ -532,6 +552,7 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
         break;
     }
     getch();
+    
     pthread_create(worker_thread, NULL, &knowledge_query, &wquery);
     for (;;) {
       clock_gettime(CLOCK_REALTIME, &now);
