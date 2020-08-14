@@ -6,6 +6,8 @@
 #include "mla.h"
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <signal.h>
+#include <setjmp.h>
 #define DEFECATE(w, ...)\
   wclear(w);\
   mvwprintw(w,0,0, __VA_ARGS__);\
@@ -26,7 +28,8 @@ some_result * init_result() {
   myresult->the_result = malloc(sizeof(the_result));
   return myresult;
 }
-
+static jmp_buf fuck;
+static int we_are_fucked;
 wchar_t greet[36];
 wchar_t prompt[3];
 static bool line_full;
@@ -344,9 +347,10 @@ static void init_ncurses(void)
 
 static void deinit_ncurses(void)
 {
+
     CHECK(delwin, msg_win);
     CHECK(delwin, sep_win);
-    CHECK(delwin, cmd_win);
+//    CHECK(delwin, cmd_win);
     CHECK(endwin);
     visual_mode = false;
 }
@@ -439,14 +443,22 @@ defecate_command(void *arg) {
   pthread_exit(NULL);
 }
 
+void unfuck_my_terminal() {
+  we_are_fucked = 1;
+  longjmp(fuck,1);
+}
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
 
-
+  signal(SIGSEGV&SIGBUS&SIGINT&SIGQUIT&SIGABRT,unfuck_my_terminal);
   // char *buffer;
   pthread_t * worker_thread = malloc(sizeof(worker_thread));
   WINDOW *top, *bottom, *cmdwin;
   int wl1, wl2, wc1, wc2, wl3, wc3;
-
+  we_are_fucked = 0;
+  setjmp(fuck);
+  if (we_are_fucked == 1) {
+    goto fuck;
+  }
   mbstowcs(weye, (string)eye, eye_len);
   mbstowcs(weye2, (string)eye2, eye2_len);
   mbstowcs(weye3, (string)eye3, eye3_len);
@@ -546,7 +558,13 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
     fukyou(2, hng, top);
     greet_and_prompt(bottom);
   }
-
+  fuck:
+  msg_win = top;
+  sep_win = bottom;
+  curl_global_cleanup();
+  deinit_ncurses();
+  if (we_are_fucked) {
+    exit(1);
+  }
   pthread_exit(NULL);
 }
-

@@ -26,6 +26,5 @@ int main(int argc, char ** argv) {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   pthread_create(&ui_thread, NULL , &milton_ui, NULL);
   pthread_join(ui_thread, NULL);
-  curl_global_cleanup();
 }
 /* end mla.c */
