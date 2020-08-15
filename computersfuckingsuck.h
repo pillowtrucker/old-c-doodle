@@ -1,2 +1,2 @@
 #include <ncurses.h>
-int fukyou(int ac, char ** av, WINDOW * win);
+int fukyou(char * supplied_filename, WINDOW * win);

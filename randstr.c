@@ -96,18 +96,18 @@ static off_t pos, Seekpts[2]; /* seek pointers to fortunes */
 
 #include "fortune-util.h"
 
-static void getargs(char *av[],WINDOW * win)
+static void getargs(char *supplied_filename,WINDOW * win)
 {
   
     if (strlen(data_filename) > 1) {
       return;
     }
      else {
-    av += optind + 1;
+
         }
-    if (*av)
+    if (*supplied_filename)
     {
-        input_filename = *av;
+        input_filename = supplied_filename;
 //            mvwprintw(win,0,0,"input filename is %s\n",input_filename);
 //              wrefresh(win);
               usleep(5);
@@ -187,11 +187,11 @@ static void display(FILE *fp, STRFILE table, WINDOW * win)
 //    fflush(stdout);
 }
 
-int fukyou(int ac GCC_UNUSED, char **av, WINDOW * win)
+int fukyou(char * supplied_filename, WINDOW * win)
 {
     static STRFILE tbl; /* description table */
 
-    getargs(av,win);
+    getargs(supplied_filename,win);
 //            mvwprintw(win,0,0,"opening %s\n",input_filename);
 //              wrefresh(win);
     if (!(Inf = fopen(input_filename, "r")))

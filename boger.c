@@ -19,9 +19,9 @@ char * funny[] = {
 };
 void surprise(struct super_boger *maggot) {
   char * getfucked = maggot->notevenfunanymore;
-  char *gnutards [] = {"a\0","b\0",getfucked};
 
-  fukyou(2,gnutards,maggot->win);
+
+  fukyou(getfucked,maggot->win);
 }
 
 int boger(int a, int b, char *c, struct super_boger *maggot) {
