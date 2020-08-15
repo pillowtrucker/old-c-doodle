@@ -27,3 +27,8 @@ typedef struct some_result {
 } some_result;
 
 some_result * init_result();
+
+typedef struct CallbackWorkspace {
+  some_result * callback_result;
+  char * command_tail;
+} CallbackWorkspace;

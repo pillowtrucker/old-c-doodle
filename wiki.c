@@ -130,10 +130,21 @@ thread_fn extract_wiki_document(void * arg) {
   pthread_exit(NULL);
 }
 thread_fn knowledge_query(void * arg) {
+      struct MemoryStruct chunk;
+      chunk.size = 0;
+      chunk.memory = malloc(1);
+      chunk.chunk_mutex = malloc(sizeof(pthread_mutex_t));
+      pthread_mutex_init(chunk.chunk_mutex, NULL);
+      CallbackWorkspace * l_workspace = (CallbackWorkspace *) arg;
+      WikiQuery * l_wquery = malloc(sizeof(WikiQuery));
+      l_wquery->chunk = &chunk;
+      l_wquery->arg = l_workspace->command_tail;
+      l_wquery->query_result = l_workspace->callback_result;
+
   CURL *curl;
   CURLcode res;
   char uri[MAX_URL];
-  WikiQuery * l_wquery = (WikiQuery *) arg;
+//  WikiQuery * l_wquery = (WikiQuery *) arg;
   string query = l_wquery->arg;
   pthread_t parser_thread;
   uri[0]=0;
@@ -195,14 +206,16 @@ thread_fn knowledge_query(void * arg) {
       mbstowcs(expanded_extracted_result, l_wquery->chunk->memory, l_wquery->chunk->size );
       l_wquery->query_result->result_size = l_wquery->chunk->size;
       l_wquery->query_result->the_result->wide_result = expanded_extracted_result;
-      
       pthread_mutex_unlock(l_wquery->chunk->chunk_mutex);
+      pthread_mutex_destroy(l_wquery->chunk->chunk_mutex);
+        free(l_wquery->chunk->memory);
     }
     
     
     // clean up memory allocated for struct passed to text extraction thread
     free(to_parse);
   }
+
   curl_easy_cleanup(curl);
   pthread_exit(NULL);
 }

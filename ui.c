@@ -28,6 +28,18 @@ some_result * init_result() {
   myresult->the_result = malloc(sizeof(the_result));
   return myresult;
 }
+CallbackWorkspace *init_callback_workspace(char * command_tail) {
+  some_result * myresult = init_result();
+  unsigned int ctlen = strlen(command_tail);
+  char * ctail = malloc(sizeof(char) * ctlen + 1);
+  strcpy(ctail,command_tail);
+  ctail[ctlen + 1] = 0;
+  CallbackWorkspace * newworkspace = malloc(sizeof(CallbackWorkspace));
+  newworkspace->callback_result = myresult;
+  newworkspace->command_tail = ctail;
+  return newworkspace;
+
+}
 static jmp_buf fuck;
 static int we_are_fucked;
 wchar_t greet[36];
@@ -432,9 +444,13 @@ typedef struct inblog {
 thread_fn
 defecate_command(void *arg) {
   inblog * myinblog = (inblog *) arg;
+  unsigned int blen = strlen(myinblog->buffer);
+  char * savebuffer = malloc(sizeof(char) * blen + 1);
+  strcpy(savebuffer,myinblog->buffer);
   char * first_word = strtok(myinblog->buffer," ");
   unsigned int clen = strlen(first_word);
-  myinblog->tail = myinblog->buffer + clen;
+  myinblog->tail = savebuffer + clen + 1;
+  myinblog->tail[blen+1] = 0;
   myinblog->command = malloc(sizeof(char) * (clen +1));
   strcpy(myinblog->command,first_word);
   pthread_mutex_lock(myinblog->r_window_mutex);
@@ -457,10 +473,20 @@ unsigned long
 void register_callback(char *thecmd, cmd_callback *thecallback) {
       dispatch_table[hash(thecmd)] = thecallback;
 }
-int dipshit_command(char *thecmd, void *arg) {
+int dipshit_command(char *thecmd, void *arg, WINDOW * topwin) {
   pthread_t worker_thread;
   pthread_create(&worker_thread,NULL, dispatch_table[hash(thecmd)],arg);
-  
+    struct timespec now;
+    struct timespec query_timeout;
+    for (;;) {
+      clock_gettime(CLOCK_REALTIME, &now);
+      query_timeout =
+          (struct timespec){.tv_sec = now.tv_sec + 2, .tv_nsec = now.tv_nsec};
+      blink(topwin);
+      if (pthread_timedjoin_np(worker_thread, NULL, &query_timeout) == 0)
+        break;
+    }
+    return 0;
 }
 
 void unfuck_my_terminal() {
@@ -470,7 +496,9 @@ void unfuck_my_terminal() {
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
 
   signal(SIGSEGV&SIGBUS&SIGINT&SIGQUIT&SIGABRT,unfuck_my_terminal);
-  // char *buffer;
+  register_callback("wiki",knowledge_query);
+//  register_callback("fart");
+
   pthread_t * worker_thread = malloc(sizeof(worker_thread));
   WINDOW *top, *bottom, *cmdwin;
   int wl1, wl2, wc1, wc2, wl3, wc3;
@@ -506,6 +534,7 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
   blink(top);
   greet_and_prompt(bottom);
   int ch;
+  maininputloop:
   for (;;) {
     line_full = FALSE;
     buffer = malloc(sizeof(char) * MAX_BUFFER);
@@ -524,19 +553,9 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
     }
     blink(top);
     some_result * myresult = init_result();
-    
-    struct MemoryStruct chunk;
-    chunk.size = 0;
-    chunk.memory = malloc(1);
-    chunk.chunk_mutex = malloc(sizeof(pthread_mutex_t));
-    pthread_mutex_init(chunk.chunk_mutex, NULL);
     pthread_mutex_t * r_window_mutex = malloc(sizeof(pthread_mutex_t));
     pthread_mutex_init(r_window_mutex,NULL);
-    WikiQuery wquery = {.chunk = &chunk, .arg = buffer, .query_result = myresult};
-//    inblog * inblog = malloc(sizeof(inblog));
     inblog inblog = {.buffer = buffer, .returnwindow=top, .r_window_mutex=r_window_mutex};
-//    inblog->buffer=buffer;
-//    inblog->returnwindow=top;
     pthread_t parse_command_thread;
     pthread_create(&parse_command_thread, NULL, &defecate_command, &inblog);
     struct timespec now;
@@ -552,26 +571,11 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
         break;
     }
     getch();
-    
-    pthread_create(worker_thread, NULL, &knowledge_query, &wquery);
-    for (;;) {
-      clock_gettime(CLOCK_REALTIME, &now);
-      query_timeout =
-          (struct timespec){.tv_sec = now.tv_sec + 2, .tv_nsec = now.tv_nsec};
-      blink(top);
-      if (pthread_timedjoin_np(*worker_thread, NULL, &query_timeout) == 0)
-        break;
-    }
-    pthread_mutex_lock(chunk.chunk_mutex);
-    if (chunk.memory != NULL) {
-      print_result(wquery.query_result,top);
-      getch();
-      free(chunk.memory);
-      cleanup_result(wquery.query_result);
-    }
-    pthread_mutex_unlock(chunk.chunk_mutex);
-    pthread_mutex_destroy(chunk.chunk_mutex);
-    free(chunk.chunk_mutex);
+    CallbackWorkspace * c_workspace = init_callback_workspace(inblog.tail);
+    dipshit_command(inblog.command, c_workspace, top);
+    print_result(c_workspace->callback_result,top);
+    getch();
+    cleanup_result(c_workspace->callback_result);
     free(buffer);
     char *getfucked = malloc(sizeof(char) * MAXPATHLEN);
     strcpy(getfucked, "./fart.dat\0");
