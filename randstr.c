@@ -203,7 +203,7 @@ int fukyou(char * supplied_filename, WINDOW * win)
         return 1;
 //        exit(1);
     }
-    printf("opening %s\n",data_filename);
+//    printf("opening %s\n",data_filename);
 //            mvwprintw(win,0,0,"opening %s\n",data_filename);
 //              wrefresh(win);
     if (!(Dataf = fopen(data_filename, "r")))

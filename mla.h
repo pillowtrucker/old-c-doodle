@@ -31,4 +31,6 @@ some_result * init_result();
 typedef struct CallbackWorkspace {
   some_result * callback_result;
   char * command_tail;
+  WINDOW * r_window;
+  pthread_mutex_t * r_window_mutex;
 } CallbackWorkspace;

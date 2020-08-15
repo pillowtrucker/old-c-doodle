@@ -147,7 +147,10 @@ void print_result(some_result * myresult, WINDOW *win) {
     print_result_and_refresh(myresult,win);
   }
 }
-
+void cleanup_workspace(CallbackWorkspace *cw) {
+  cleanup_result(cw->callback_result);
+  free(cw->command_tail);
+}
 typedef struct inblog {
   char * buffer;
   char * command;
@@ -172,7 +175,7 @@ defecate_command(void *arg) {
     myinblog->tail[blen + 1] = 0;
     myinblog->command = malloc(sizeof(char) * (clen + 1));
     strcpy(myinblog->command, first_word);
-    DEFECATE_WITH_MUTEX(myinblog->returnwindow,myinblog->r_window_mutex, "Found command %s\n", first_word);
+//    DEFECATE_WITH_MUTEX(myinblog->returnwindow,myinblog->r_window_mutex, "Found command %s\n", first_word);
   }
   pthread_exit(NULL);
 }
@@ -205,9 +208,9 @@ int dipshit_command(char *thecmd, CallbackWorkspace *c_workspace, WINDOW * topwi
       clock_gettime(CLOCK_REALTIME, &now);
       query_timeout =
         (struct timespec){.tv_sec = now.tv_sec + 2, .tv_nsec = now.tv_nsec};
-      blink(topwin);
       if (pthread_timedjoin_np(worker_thread, NULL, &query_timeout) == 0)
         break;
+      
     }
     return 0;
   }
@@ -217,11 +220,27 @@ void unfuck_my_terminal() {
       we_are_fucked = 1;
       longjmp(fuck, 1);
 }
+#define FART_FN "fart\0"
+#define FART_FN_L strlen("fart\0")
+thread_fn wrap_fart(void * arg) {
+  CallbackWorkspace * l_workspace = (CallbackWorkspace *) arg;
+  pthread_mutex_lock(l_workspace->r_window_mutex);
+  char * fart_fn = malloc(sizeof(char) * FART_FN_L + 1);
+  strcpy(fart_fn,FART_FN);
+  wclear(l_workspace->r_window);
+  fukyou(fart_fn,l_workspace->r_window);
+  wrefresh(l_workspace->r_window);
+  getch();
+  pthread_mutex_unlock(l_workspace->r_window_mutex);
+
+//  getch();
+  pthread_exit(NULL);
+}
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
 
   signal(SIGSEGV&SIGBUS&SIGINT&SIGQUIT&SIGABRT,unfuck_my_terminal);
   register_callback("wiki",knowledge_query);
-//  register_callback("fart");
+  register_callback("fart",wrap_fart);
 
   pthread_t * worker_thread = malloc(sizeof(worker_thread));
   WINDOW *top, *bottom, *cmdwin;
@@ -258,6 +277,8 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
   blink(top);
   greet_and_prompt(bottom);
   int ch;
+  pthread_mutex_t * r_window_mutex = malloc(sizeof(pthread_mutex_t));
+  pthread_mutex_init(r_window_mutex,NULL);
   maininputloop:
   for (;;) {
     line_full = FALSE;
@@ -273,12 +294,9 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
         buffer[i+1]=0;
         break;
       }
-
     }
     blink(top);
     some_result * myresult = init_result();
-    pthread_mutex_t * r_window_mutex = malloc(sizeof(pthread_mutex_t));
-    pthread_mutex_init(r_window_mutex,NULL);
     inblog inblog = {.buffer = buffer, .returnwindow=top, .r_window_mutex=r_window_mutex};
     pthread_t parse_command_thread;
     pthread_create(&parse_command_thread, NULL, &defecate_command, &inblog);
@@ -294,16 +312,21 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
       if (pthread_timedjoin_np(parse_command_thread, NULL, &query_timeout) == 0)
         break;
     }
-    getch();
+
+    if (inblog.command == NULL)
+      goto skipdispatch;
     CallbackWorkspace * c_workspace = init_callback_workspace(inblog.tail);
+    c_workspace->r_window = top;
+    c_workspace->r_window_mutex = r_window_mutex;
     dipshit_command(inblog.command, c_workspace, top);
     print_result(c_workspace->callback_result,top);
+    cleanup_workspace(c_workspace);
+  skipdispatch:
     getch();
-    cleanup_result(c_workspace->callback_result);
     free(buffer);
-    char *getfucked = malloc(sizeof(char) * MAXPATHLEN);
-    strcpy(getfucked, "./fart.dat\0");
-    fukyou(getfucked, top);
+//    char *getfucked = malloc(sizeof(char) * MAXPATHLEN);
+//    strcpy(getfucked, "./fart.dat\0");
+//    fukyou(getfucked, top);
     greet_and_prompt(bottom);
   }
   fuck:
