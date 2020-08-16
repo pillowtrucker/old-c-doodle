@@ -238,7 +238,11 @@ thread_fn wrap_fart(void * arg) {
 }
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
 
-  signal(SIGSEGV|SIGBUS|SIGINT|SIGQUIT|SIGABRT,unfuck_my_terminal);
+  signal(SIGSEGV,unfuck_my_terminal);
+  signal(SIGBUS,unfuck_my_terminal);
+  signal(SIGINT,unfuck_my_terminal);
+  signal(SIGQUIT,unfuck_my_terminal);
+  signal(SIGABRT,unfuck_my_terminal);
   register_callback("wiki",knowledge_query);
   register_callback("fart",wrap_fart);
 
@@ -329,10 +333,10 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
 //    fukyou(getfucked, top);
     greet_and_prompt(bottom);
   }
-  fuck:
   msg_win = top;
   sep_win = bottom;
   curl_global_cleanup();
+ fuck:
   deinit_ncurses();
   if (we_are_fucked) {
     exit(1);
