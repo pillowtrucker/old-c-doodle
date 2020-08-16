@@ -237,7 +237,10 @@ thread_fn wrap_fart(void * arg) {
   pthread_exit(NULL);
 }
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
-
+  struct timespec now;
+  clock_gettime(CLOCK_REALTIME, &now);
+  unsigned int mystupidseed = now.tv_nsec % UINT_MAX;
+  srandom(mystupidseed);
   signal(SIGSEGV,unfuck_my_terminal);
   signal(SIGBUS,unfuck_my_terminal);
   signal(SIGINT,unfuck_my_terminal);
