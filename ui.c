@@ -333,10 +333,10 @@ thread_fn milton_ui(__attribute__((unused)) void *arg) {
 //    fukyou(getfucked, top);
     greet_and_prompt(bottom);
   }
+ fuck:
+  curl_global_cleanup();
   msg_win = top;
   sep_win = bottom;
-  curl_global_cleanup();
- fuck:
   deinit_ncurses();
   if (we_are_fucked) {
     exit(1);
