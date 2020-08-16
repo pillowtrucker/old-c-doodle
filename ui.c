@@ -238,7 +238,7 @@ thread_fn wrap_fart(void * arg) {
 }
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
 
-  signal(SIGSEGV&SIGBUS&SIGINT&SIGQUIT&SIGABRT,unfuck_my_terminal);
+  signal(SIGSEGV|SIGBUS|SIGINT|SIGQUIT|SIGABRT,unfuck_my_terminal);
   register_callback("wiki",knowledge_query);
   register_callback("fart",wrap_fart);
 
