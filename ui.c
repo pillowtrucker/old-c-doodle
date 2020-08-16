@@ -181,7 +181,7 @@ defecate_command(void *arg) {
 }
 typedef thread_fn cmd_callback(void * arg);
 
-static cmd_callback * dispatch_table[UINT_MAX];
+static cmd_callback ** dispatch_table;
 unsigned long
     hash(char *str)
     {
@@ -237,6 +237,7 @@ thread_fn wrap_fart(void * arg) {
   pthread_exit(NULL);
 }
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
+  dispatch_table = malloc(sizeof(cmd_callback) * UINT_MAX);
   struct timespec now;
   clock_gettime(CLOCK_REALTIME, &now);
   unsigned int mystupidseed = now.tv_nsec % UINT_MAX;
