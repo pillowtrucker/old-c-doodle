@@ -192,11 +192,11 @@ unsigned long
         return (hash % UINT_MAX);
     }
 void register_callback(char *thecmd, cmd_callback *thecallback) {
-      dispatch_table[hash(thecmd)] = thecallback;
+      *(dispatch_table + hash(thecmd)) = thecallback;
 }
 int dipshit_command(char *thecmd, CallbackWorkspace *c_workspace, WINDOW * topwin) {
   pthread_t worker_thread;
-  cmd_callback * thecallback = dispatch_table[hash(thecmd)];
+  cmd_callback * thecallback = *(dispatch_table + hash(thecmd));
   if (thecallback == NULL) {
     return 1;
     }
@@ -237,7 +237,7 @@ thread_fn wrap_fart(void * arg) {
   pthread_exit(NULL);
 }
 thread_fn milton_ui(__attribute__((unused)) void *arg) {
-  dispatch_table = malloc(sizeof(cmd_callback) * UINT_MAX);
+  dispatch_table = malloc(sizeof(cmd_callback *) * UINT_MAX);
   struct timespec now;
   clock_gettime(CLOCK_REALTIME, &now);
   unsigned int mystupidseed = now.tv_nsec % UINT_MAX;
