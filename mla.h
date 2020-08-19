@@ -34,3 +34,5 @@ typedef struct CallbackWorkspace {
   WINDOW * r_window;
   pthread_mutex_t * r_window_mutex;
 } CallbackWorkspace;
+#define strncpy(a,b,...) strcpy(a,b)
+#define strlcpy(a,b,...) strcpy(a,b)
